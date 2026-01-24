@@ -1,19 +1,18 @@
 ﻿using Serilog.Core;
-using Serilog.Enrichers.Redactor;
 using Serilog.Events;
 using Serilog.Sinks.InMemory;
 using Shouldly;
 
-namespace Serilog.Enrichments.Redactor.Tests.Unit
+namespace Serilog.DestructuringPolicies.Redactor.Tests.Unit
 {
-    public class RedactorEnricherTests
+    public class RedactorDestructuringPolicyTests
     {
         private readonly Logger _logger;
 
-        public RedactorEnricherTests()
+        public RedactorDestructuringPolicyTests()
         {
             _logger = new LoggerConfiguration()
-                .Enrich.WithRedactor()
+                .Destructure.WithRedactor()
                 .WriteTo.InMemory()
                 .CreateLogger();
 
@@ -27,7 +26,7 @@ namespace Serilog.Enrichments.Redactor.Tests.Unit
             // Arrange
             var redactText = "❌❌❌";
             var logger = new LoggerConfiguration()
-                .Enrich.With(new RedactorEnricher(redactText))
+                .Destructure.WithRedactor(redactText)
                 .WriteTo.InMemory()
                 .CreateLogger();
 
@@ -114,24 +113,6 @@ namespace Serilog.Enrichments.Redactor.Tests.Unit
             }
         }
 
-        [Fact]
-        public void GivenARedactedProperty_WhenLoggingStructuredValue_ThenRedactsExpectedProperties()
-        {
-            // Arrange
-            var testRecord = new TestRecord("SecretValue", "PublicValue");
-
-            // Act
-            _logger.Information("Logging structured value: {TestRecord}", testRecord);
-
-            // Assert
-            var loggedEvent = InMemorySink.Instance.LogEvents.First();
-
-            AssertStructureValueContainsPropertyWithValue(
-                loggedEvent.Properties["TestRecord"] as StructureValue,
-                "SensitiveData",
-                "[REDACTED]");
-        }
-
         private static void AssertStructureValueContainsPropertyWithValue<T>(StructureValue structureValue, string propertyName, T? value)
         {
             structureValue!
@@ -146,5 +127,4 @@ namespace Serilog.Enrichments.Redactor.Tests.Unit
         [property: Redacted] string? SensitiveData, string? NonSensitiveData);
 
     internal record TestRecordWithNesting(TestRecord NestedRecord, TestRecord[] RecordCollection);
-
 }

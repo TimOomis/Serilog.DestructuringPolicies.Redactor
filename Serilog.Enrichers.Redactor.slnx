@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="src/Serilog.Enrichers.Redactor/Serilog.Enrichers.Redactor.csproj" />
-  <Project Path="test/Serilog.Enrichments.Redactor.Tests.Unit/Serilog.Enrichments.Redactor.Tests.Unit.csproj" Id="77a384a6-a36d-42cc-b57e-18aff4d05dd2" />
-</Solution>

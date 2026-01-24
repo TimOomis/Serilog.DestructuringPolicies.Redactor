@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Serilog.Enrichers.Redactor\Serilog.Enrichers.Redactor.csproj" />
+    <ProjectReference Include="..\..\src\Serilog.DestructuringPolicies.Redactor\Serilog.DestructuringPolicies.Redactor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
