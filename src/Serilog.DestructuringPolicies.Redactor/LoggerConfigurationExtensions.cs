@@ -17,7 +17,7 @@ namespace Serilog.DestructuringPolicies.Redactor
         /// <param name="redactedText">The text to use in place of redacted values. If null, the default "[REDACTED]" is used.</param>
         /// <returns>A logger configuration object enriched with the redactor.</returns>
         /// <exception cref="ArgumentNullException">Thrown if the enrichmentConfiguration parameter provided is null.</exception>
-        public static LoggerConfiguration WithRedactor(this Configuration.LoggerDestructuringConfiguration enrichmentConfiguration, string redactedText = null)
+        public static LoggerConfiguration WithRedactor(this Configuration.LoggerDestructuringConfiguration enrichmentConfiguration, string? redactedText = null)
         {
             if (enrichmentConfiguration == null)
             {

@@ -9,7 +9,7 @@ namespace Serilog.DestructuringPolicies.Redactor
     /// passwords or personal data, to prevent their values from being exposed in logging output.
     /// </remarks>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
-    public class RedactedAttribute : Attribute
+    public sealed class RedactedAttribute : Attribute
     {
 
     }

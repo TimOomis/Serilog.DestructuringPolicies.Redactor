@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Serilog.DestructuringPolicies.Redactor.DemoApp": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

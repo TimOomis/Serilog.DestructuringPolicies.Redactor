@@ -12,7 +12,7 @@ namespace Serilog.DestructuringPolicies.Redactor
         private const string DefaultRedactedText = "[REDACTED]";
         private readonly string _redactedText;
 
-        public RedactorDestructuringPolicy(string redactedText = DefaultRedactedText)
+        public RedactorDestructuringPolicy(string? redactedText = DefaultRedactedText)
         {
             _redactedText = redactedText ?? DefaultRedactedText;
         }

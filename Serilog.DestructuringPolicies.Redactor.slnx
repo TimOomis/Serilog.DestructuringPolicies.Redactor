@@ -1,4 +1,8 @@
 <Solution>
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
+  <Project Path="src/Serilog.DestructuringPolicies.Redactor.DemoApp/Serilog.DestructuringPolicies.Redactor.DemoApp.csproj" Id="f6d18dc5-ee92-40cb-8394-c78d7e9c5901" />
   <Project Path="src/Serilog.DestructuringPolicies.Redactor/Serilog.DestructuringPolicies.Redactor.csproj" />
   <Project Path="test/Serilog.DestructuringPolicies.Redactor.Tests.Unit/Serilog.DestructuringPolicies.Redactor.Tests.Unit.csproj" />
 </Solution>
