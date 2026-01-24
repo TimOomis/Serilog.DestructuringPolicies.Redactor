@@ -2,13 +2,9 @@ name: Publish NuGet Package
 
 on:
   push:
-    tags:
-      - 'v*.*.*'  # Trigger on version tags like v1.0.0
-  workflow_dispatch:  # Allow manual trigger
-    inputs:
-      version:
-        description: 'Version number (e.g., 1.0.0)'
-        required: true
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build-and-publish:
@@ -18,39 +14,49 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Full history for SourceLink
-    
+        fetch-depth: 0
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '10.0.x'
-    
-    - name: Extract version from tag
-      id: version
+
+    - name: Extract Version from .csproj
+      id: get_version
       run: |
-        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" src/Serilog.DestructuringPolicies.Redactor/Serilog.DestructuringPolicies.Redactor.csproj)
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Detected version: $VERSION"
+
+    - name: Check if version already exists on NuGet
+      id: check_version
+      run: |
+        PACKAGE_ID="Serilog.DestructuringPolicies.Redactor"
+        VERSION="${{ steps.get_version.outputs.VERSION }}"
+        
+        # Query the NuGet API (lowercasing the package ID as per NuGet's API requirements)
+        LOWER_ID=$(echo "$PACKAGE_ID" | tr '[:upper:]' '[:lower:]')
+        RESPONSE=$(curl -s "https://api.nuget.org/v3-flatcontainer/$LOWER_ID/index.json")
+        
+        # Check if the version is present in the versions array
+        if echo "$RESPONSE" | jq -e ".versions | contains([\"$VERSION\"])" > /dev/null; then
+          echo "::error::Version $VERSION already exists on NuGet.org. Please increment the <Version> in your .csproj file."
+          exit 1
         else
-          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          echo "Version $VERSION is new. Proceeding..."
         fi
-    
+
     - name: Restore dependencies
-      run: dotnet restore
-    
+      run: dotnet restore Serilog.DestructuringPolicies.Redactor.slnx
+
     - name: Build
-      run: dotnet build Serilog.DestructuringPolicies.Redactor.slnx --configuration Release --no-restore /p:Version=${{ steps.version.outputs.VERSION }}
-    
+      run: dotnet build Serilog.DestructuringPolicies.Redactor.slnx --configuration Release --no-restore /p:Version=${{ steps.get_version.outputs.VERSION }}
+
     - name: Run tests
       run: dotnet test Serilog.DestructuringPolicies.Redactor.slnx --configuration Release --no-build --verbosity normal
-    
+
     - name: Pack NuGet package
-      run: dotnet pack src/Serilog.DestructuringPolicies.Redactor/Serilog.DestructuringPolicies.Redactor.csproj --configuration Release --no-build --output ./artifacts /p:Version=${{ steps.version.outputs.VERSION }}
-    
+      run: dotnet pack src/Serilog.DestructuringPolicies.Redactor/Serilog.DestructuringPolicies.Redactor.csproj --configuration Release --no-build --output ./artifacts /p:Version=${{ steps.get_version.outputs.VERSION }}
+
     - name: Publish to NuGet
       run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-    
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: nuget-packages
-        path: ./artifacts/*.nupkg
