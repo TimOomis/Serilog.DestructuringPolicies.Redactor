@@ -20,10 +20,10 @@ jobs:
         dotnet-version: '10.0.x'
     
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore Serilog.DestructuringPolicies.Redactor.slnx
     
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build Serilog.DestructuringPolicies.Redactor.slnx --configuration Release --no-restore
     
     - name: Run tests
-      run: dotnet test --configuration Release --no-build --verbosity normal
+      run: dotnet test Serilog.DestructuringPolicies.Redactor.slnx --configuration Release --no-build --verbosity normal
