@@ -2,6 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Serilog.DestructuringPolicies.Redactor.svg)](https://www.nuget.org/packages/Serilog.DestructuringPolicies.Redactor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Serilog.DestructuringPolicies.Redactor.svg)](https://www.nuget.org/packages/Serilog.DestructuringPolicies.Redactor/)
 
 A Serilog destructuring policy that automatically redacts sensitive properties marked with the included `[Redacted]` attribute. This helps prevent sensitive data like passwords, API-keys, credit card numbers, and personal information from appearing in your logs.
  
