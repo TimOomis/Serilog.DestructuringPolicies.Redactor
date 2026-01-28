@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Serilog.DestructuringPolicies.Redactor.svg)](https://www.nuget.org/packages/Serilog.DestructuringPolicies.Redactor/)
 
-A Serilog destructuring policy that automatically redacts sensitive properties marked with the included `[Redacted]` attribute. This helps prevent sensitive data like passwords, API-keys, credit card numbers, and personal information from appearing in your logs.
+A Serilog destructuring policy that automatically redacts sensitive properties marked with the included `[Redacted]` attribute or encapsulated in the `RedactedValue<T>` type. This helps prevent sensitive data like passwords, API-keys, credit card numbers, and personal information from appearing in your logs.
  
 ## Features
 
@@ -82,20 +82,18 @@ Log.Information("User created: {@Person}", person);
 // Output: User created: { Name: "John Doe", SocialSecurityNumber: "[REDACTED]", Password: "[REDACTED]" }
 ```
 
-### Redacting Scalar Values with `RedactedValue<T>`
+### Using `RedactedValue<T>` for Redaction
 
-When logging sensitive data directly as scalar values (not as object properties), use the `RedactedValue<T>` wrapper:
+As an alternative to the `[Redacted]` attribute, you can use the `RedactedValue<T>` wrapper to redact sensitive data. This works both for properties in destructured objects and for scalar values logged directly:
 
 ```csharp
 public class User
 {
     public string Name { get; set; }
     
-    // For scalar values that need to be logged directly, wrap them in RedactedValue<T>
-    [Redacted]
+    // RedactedValue<T> automatically redacts without needing the [Redacted] attribute
     public RedactedValue<string> Username { get; set; }
     
-    [Redacted]
     public RedactedValue<string> ApiKey { get; set; }
 }
 
@@ -118,7 +116,11 @@ string actualUsername = user.Username; // Implicit conversion back to string
 
 **Why `RedactedValue<T>`?** 
 
-The destructuring policy works on objects and their properties. When you log a scalar value directly (like a string or int), it bypasses the destructuring process. `RedactedValue<T>` wraps your sensitive scalar in an object with a `[Redacted]` property, ensuring it's protected.
+`RedactedValue<T>` provides a type-safe way to mark values as sensitive without using attributes. It works as a standalone solution:
+- In destructured objects: The wrapper itself signals that the value should be redacted
+- As scalar values: When logged directly, it ensures the value is protected even outside of object properties
+
+This approach gives you flexibility to choose between attribute-based redaction (`[Redacted]`) or type-based redaction (`RedactedValue<T>`) based on your needs.
 
 ### Custom Redacted Text
 

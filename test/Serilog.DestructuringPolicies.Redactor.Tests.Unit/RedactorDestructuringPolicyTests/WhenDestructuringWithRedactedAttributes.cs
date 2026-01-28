@@ -1,25 +1,11 @@
 ﻿using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.InMemory;
-using Shouldly;
 
-namespace Serilog.DestructuringPolicies.Redactor.Tests.Unit;
+namespace Serilog.DestructuringPolicies.Redactor.Tests.Unit.RedactorDestructuringPolicyTests;
 
-public class RedactorDestructuringPolicyTests
+public class WhenDestructuringWithRedactedAttributes : RedactorDestructuringPolicyTestBase
 {
-    private readonly Logger _logger;
-
-    public RedactorDestructuringPolicyTests()
-    {
-        _logger = new LoggerConfiguration()
-            .Destructure.WithRedactor()
-            .WriteTo.InMemory()
-            .CreateLogger();
-
-        // Clear the in-memory sink before each test.
-        InMemorySink.Instance.Dispose();
-    }
-
     [Fact]
     public void GivenACustomRedactTextInConstructor_WhenLoggingDestructuredValue_RedactsPropertiesWithExpectedText()
     {
@@ -49,7 +35,7 @@ public class RedactorDestructuringPolicyTests
         var testRecord = new TestRecord("SecretValue", "PublicValue");
 
         // Act
-        _logger.Information("Logging record: {@TestRecord}", testRecord);
+        Logger.Information("Logging record: {@TestRecord}", testRecord);
 
         // Assert
         var loggedEvent = InMemorySink.Instance.LogEvents.First();
@@ -66,7 +52,7 @@ public class RedactorDestructuringPolicyTests
         var testRecord = new TestRecord(null, "PublicValue");
 
         // Act
-        _logger.Information("Logging record: {@TestRecord}", testRecord);
+        Logger.Information("Logging record: {@TestRecord}", testRecord);
         // Assert
         var loggedEvent = InMemorySink.Instance.LogEvents.First();
         var loggedRecord = loggedEvent.Properties["TestRecord"] as StructureValue;
@@ -89,7 +75,7 @@ public class RedactorDestructuringPolicyTests
             SensitiveRecord: new TestRecord("SensitiveRecordData", "NonSensitiveDataThatShouldAlsoBeHidden"));
 
         // Act
-        _logger.Information("Logging nested record: {@NestedRecord}", nestedRecord);
+        Logger.Information("Logging nested record: {@NestedRecord}", nestedRecord);
 
         // Assert
         var loggedEvent = InMemorySink.Instance.LogEvents.First();
@@ -116,17 +102,8 @@ public class RedactorDestructuringPolicyTests
         }
     }
 
-    private static void AssertStructureValueContainsPropertyWithValue<T>(StructureValue structureValue, string propertyName, T? value)
-    {
-        structureValue!
-            .Properties
-            .ShouldContain(prop =>
-                prop.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase) &&
-                prop.Value.Equals(new ScalarValue(value)));
-    }
+    internal record TestRecord(
+        [property: Redacted] string? SensitiveData, string? NonSensitiveData);
+
+    internal record TestRecordWithNesting(TestRecord NestedRecord, TestRecord[] RecordCollection, [property: Redacted] TestRecord SensitiveRecord);
 }
-
-internal record TestRecord(
-    [property: Redacted] string? SensitiveData, string? NonSensitiveData);
-
-internal record TestRecordWithNesting(TestRecord NestedRecord, TestRecord[] RecordCollection, [property:Redacted] TestRecord SensitiveRecord);
