@@ -102,7 +102,6 @@ public class WhenDestructuringWithRedactedAttributes : RedactorDestructuringPoli
         }
     }
 
-
     internal record TestRecord(
         [property: Redacted] string? SensitiveData, string? NonSensitiveData);
 
