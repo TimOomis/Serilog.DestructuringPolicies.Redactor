@@ -26,6 +26,20 @@ namespace Serilog.DestructuringPolicies.Redactor
             }
 
             var type = value.GetType();
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(RedactedValue<>))
+            {
+                // For redacted values, if value is null, keep it as null to avoid confusion due to obscuring it.
+                if (value is RedactedValue<object> redactedValue && redactedValue.Value == null)
+                {
+                    result = new ScalarValue(null);
+                    return true;
+                }
+
+                result = new ScalarValue(_redactedText);
+                return true;
+            }
+
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             
             var redactedPropertyNames = properties
