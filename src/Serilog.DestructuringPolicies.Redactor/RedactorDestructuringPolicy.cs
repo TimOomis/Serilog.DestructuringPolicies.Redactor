@@ -16,7 +16,7 @@ namespace Serilog.DestructuringPolicies.Redactor
         private static readonly ConditionalWeakTable<Type, object> _typesWithoutRedactedProps = new ConditionalWeakTable<Type, object>();
         private static readonly ConditionalWeakTable<Type, PropertyInfo[]> _cachedRedactedTypeProps = new ConditionalWeakTable<Type, PropertyInfo[]>();
         private static readonly object _marker = new object();
-        private static readonly ScalarValue nullScalerValue = new ScalarValue(null);
+        private static readonly ScalarValue nullScalarValue = new ScalarValue(null);
 
         public RedactorDestructuringPolicy(string? redactedText = DefaultRedactedText)
         {
