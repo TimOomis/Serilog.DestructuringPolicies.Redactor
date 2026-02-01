@@ -1,9 +1,10 @@
-using Serilog.Core;
+﻿using Serilog.Core;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Serilog.DestructuringPolicies.Redactor
 {
@@ -11,6 +12,10 @@ namespace Serilog.DestructuringPolicies.Redactor
     {
         private const string DefaultRedactedText = "[REDACTED]";
         private readonly string _redactedText;
+
+        private static readonly ConditionalWeakTable<Type, object> _typesWithoutRedactedProps = new ConditionalWeakTable<Type, object>();
+        private static readonly ConditionalWeakTable<Type, PropertyInfo[]> _cachedRedactedTypeProps = new ConditionalWeakTable<Type, PropertyInfo[]>();
+        private static readonly object _marker = new object();
 
         public RedactorDestructuringPolicy(string? redactedText = DefaultRedactedText)
         {
@@ -40,8 +45,44 @@ namespace Serilog.DestructuringPolicies.Redactor
                 return true;
             }
 
-            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            
+            // Known non-redacted types
+            if (_typesWithoutRedactedProps.TryGetValue(type, out _))
+            {
+                result = null!;
+                return false;
+            }
+
+            // Thread-safe lazy initialization using GetValue()
+            // Factory may run more than once under contention; only one value is stored.
+            var properties = _cachedRedactedTypeProps.GetValue(type, t =>
+            {
+                var allProps = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+                // Avoid indexers (they throw TargetParameterCountException when calling GetValue(obj) without args)
+                var nonIndexerProps = allProps
+                    .Where(p => p.GetIndexParameters().Length == 0)
+                    .ToArray();
+
+                // Only cache props for types that actually have any [Redacted] property.
+                var hasAnyRedacted = nonIndexerProps.Any(p => Attribute.IsDefined(p, typeof(RedactedAttribute)));
+                if (!hasAnyRedacted)
+                {
+                    _typesWithoutRedactedProps.GetValue(t, _ => _marker);
+
+                    // We must return *something* to satisfy ConditionalWeakTable's factory contract.
+                    // We'll return the computed props array, but the caller will immediately return false.
+                    return nonIndexerProps;
+                }
+
+                return nonIndexerProps;
+            });
+
+            if (_typesWithoutRedactedProps.TryGetValue(type, out _))
+            {
+                result = null!;
+                return false;
+            }
+
             var redactedPropertyNames = properties
                 .Where(p => Attribute.IsDefined(p, typeof(RedactedAttribute)))
                 .Select(p => p.Name)
@@ -49,18 +90,20 @@ namespace Serilog.DestructuringPolicies.Redactor
 
             if (redactedPropertyNames.Count == 0)
             {
+                // Defensive: treat as non-redacted
+                _typesWithoutRedactedProps.GetValue(type, _ => _marker);
                 result = null!;
                 return false;
             }
 
             var logEventProperties = new List<LogEventProperty>();
-            
+
             foreach (var prop in properties)
             {
                 try
                 {
                     var propValue = prop.GetValue(value);
-                    
+
                     if (redactedPropertyNames.Contains(prop.Name))
                     {
                         // For redacted properties, if value is null, keep it as null to avoid confusion due to obscuring it.
