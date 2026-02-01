@@ -16,6 +16,7 @@ namespace Serilog.DestructuringPolicies.Redactor
         private static readonly ConditionalWeakTable<Type, object> _typesWithoutRedactedProps = new ConditionalWeakTable<Type, object>();
         private static readonly ConditionalWeakTable<Type, PropertyInfo[]> _cachedRedactedTypeProps = new ConditionalWeakTable<Type, PropertyInfo[]>();
         private static readonly object _marker = new object();
+        private static readonly ScalarValue nullScalerValue = new ScalarValue(null);
 
         public RedactorDestructuringPolicy(string? redactedText = DefaultRedactedText)
         {
@@ -37,7 +38,7 @@ namespace Serilog.DestructuringPolicies.Redactor
                 // For redacted values, if value is null, keep it as null to avoid confusion due to obscuring it.
                 if (value is RedactedValue<object> redactedValue && redactedValue.Value == null)
                 {
-                    result = new ScalarValue(null);
+                    result = nullScalerValue;
                     return true;
                 }
 
@@ -109,7 +110,7 @@ namespace Serilog.DestructuringPolicies.Redactor
                         // For redacted properties, if value is null, keep it as null to avoid confusion due to obscuring it.
                         if (propValue == null)
                         {
-                            logEventProperties.Add(new LogEventProperty(prop.Name, new ScalarValue(null)));
+                            logEventProperties.Add(new LogEventProperty(prop.Name, nullScalerValue));
                         }
                         else
                         {
