@@ -38,7 +38,7 @@ namespace Serilog.DestructuringPolicies.Redactor
                 // For redacted values, if value is null, keep it as null to avoid confusion due to obscuring it.
                 if (value is RedactedValue<object> redactedValue && redactedValue.Value == null)
                 {
-                    result = nullScalerValue;
+                    result = nullScalarValue;
                     return true;
                 }
 
@@ -110,7 +110,7 @@ namespace Serilog.DestructuringPolicies.Redactor
                         // For redacted properties, if value is null, keep it as null to avoid confusion due to obscuring it.
                         if (propValue == null)
                         {
-                            logEventProperties.Add(new LogEventProperty(prop.Name, nullScalerValue));
+                            logEventProperties.Add(new LogEventProperty(prop.Name, nullScalarValue));
                         }
                         else
                         {
